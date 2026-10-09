@@ -1,0 +1,6 @@
+{
+  "name": "FlashMind AI",
+  "description": "Turn your notes into smarter revision. AI-powered flashcard generation from PDFs and notes with interactive flip review, quizzes, and deck management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
