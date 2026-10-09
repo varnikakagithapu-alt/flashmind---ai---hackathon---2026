@@ -6,12 +6,40 @@ export interface Flashcard {
   question: string;
   answer: string;
   subject?: string;
+  section?: string;
   difficulty?: DifficultyLevel;
   explanation?: string;
   mastered?: boolean;
   needsReview?: boolean;
   reviewCount?: number;
   lastReviewed?: string;
+}
+
+export interface DocumentChunk {
+  id: string;
+  index: number;
+  title: string;
+  content: string;
+  wordCount: number;
+  charCount: number;
+  estimatedReadingTimeMinutes: number;
+  allocatedCardCount?: number;
+  pageRange?: { start: number; end: number };
+}
+
+export interface ChunkingOptions {
+  maxChunkSize?: number;
+  minChunkSize?: number;
+  overlap?: number;
+  preserveHeadings?: boolean;
+}
+
+export interface ChunkingResult {
+  chunks: DocumentChunk[];
+  totalChunks: number;
+  totalWords: number;
+  totalChars: number;
+  isLargeDocument: boolean;
 }
 
 export interface Deck {
@@ -40,12 +68,14 @@ export interface ActivityEntry {
 
 export interface DailyTrendPoint {
   date: string;
+  dateKey?: string;
   cardsMastered: number;
   cardsStudied: number;
   studyMinutes: number;
 }
 
 export interface StudyStats {
+  startDate?: string;
   totalCardsStudied: number;
   totalCardsMastered: number;
   totalStudyMinutes: number;

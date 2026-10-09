@@ -24,6 +24,7 @@ interface DashboardProps {
   onCreateNew: () => void;
   onViewAllDecks: () => void;
   onSelectDeckForEdit: (deck: Deck) => void;
+  onResetProgress?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -34,7 +35,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onCreateNew,
   onViewAllDecks,
   onSelectDeckForEdit,
+  onResetProgress,
 }) => {
+  const [showResetModal, setShowResetModal] = React.useState(false);
+
   const totalCardsInDecks = decks.reduce((acc, d) => acc + d.cards.length, 0);
   const masteredCount = decks.reduce(
     (acc, d) => acc + d.cards.filter((c) => c.mastered).length,
@@ -42,6 +46,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   const recentDecks = decks.slice(0, 4);
+
+  const trackingDateLabel = stats.startDate
+    ? new Date(stats.startDate).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : new Date().toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
 
   return (
     <div className="space-y-10 pb-16">
@@ -100,6 +116,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       </section>
+
+      {/* Tracking Status & Controls Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1 -mb-6">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs font-semibold text-slate-700">
+            Real Study Activity
+          </span>
+          <span className="text-xs text-slate-400">·</span>
+          <span className="text-xs text-slate-500">
+            Tracking active since {trackingDateLabel}
+          </span>
+        </div>
+
+        {onResetProgress && (
+          <button
+            onClick={() => setShowResetModal(true)}
+            className="text-xs text-slate-400 hover:text-rose-600 transition-colors flex items-center gap-1.5 cursor-pointer self-start sm:self-auto font-medium"
+            title="Clear all recorded study sessions and restart tracking from zero"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+            <span>Reset All Records</span>
+          </button>
+        )}
+      </div>
 
       {/* Metric Cards Row */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -358,6 +399,44 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Reset Records Confirmation Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+              <RotateCw className="w-5 h-5" />
+            </div>
+
+            <div>
+              <h3 className="text-base font-display font-bold text-slate-900">
+                Reset All Study Records?
+              </h3>
+              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                This will clear all recorded study sessions, practice quiz scores, mastered card counters, and streaks, starting your tracking completely fresh from today with 0 records.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (onResetProgress) onResetProgress();
+                  setShowResetModal(false);
+                }}
+                className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors shadow-xs cursor-pointer"
+              >
+                Yes, Reset Records
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

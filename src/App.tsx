@@ -59,6 +59,11 @@ export default function App() {
     }
   };
 
+  const handleResetProgress = () => {
+    StorageService.resetAllProgress();
+    refreshDecksAndStats();
+  };
+
   const handleCardStatusChange = (cardId: string, mastered: boolean) => {
     if (!activeDeck) return;
     StorageService.updateCard(activeDeck.id, cardId, {
@@ -119,6 +124,7 @@ export default function App() {
             onCreateNew={() => setCurrentTab('create')}
             onViewAllDecks={() => setCurrentTab('decks')}
             onSelectDeckForEdit={(deck) => setDeckBeingEdited(deck)}
+            onResetProgress={handleResetProgress}
           />
         )}
 

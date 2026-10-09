@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Sparkles,
   FileText,
@@ -15,9 +15,13 @@ import {
   FileCode,
   X,
   Layers,
+  Eye,
+  EyeOff,
+  BookOpen,
+  Filter,
 } from 'lucide-react';
 import { AiService, GenerationResult } from '../services/ai';
-import { Deck, DifficultyLevel, CardTypeOption, Flashcard } from '../types';
+import { Deck, DifficultyLevel, CardTypeOption, Flashcard, ChunkingResult, DocumentChunk } from '../types';
 
 interface GeneratorProps {
   onDeckCreated: (deck: Deck) => void;
@@ -39,6 +43,13 @@ export const Generator: React.FC<GeneratorProps> = ({ onDeckCreated, hasGeminiKe
     filename?: string;
   } | null>(null);
 
+  // Document chunking states
+  const [chunkingResult, setChunkingResult] = useState<ChunkingResult | null>(null);
+  const [selectedChunkIds, setSelectedChunkIds] = useState<Set<string>>(new Set());
+  const [isChunkingActive, setIsChunkingActive] = useState<boolean>(true);
+  const [previewChunkId, setPreviewChunkId] = useState<string | null>(null);
+  const [selectedSectionFilter, setSelectedSectionFilter] = useState<string>('all');
+
   // Generation options
   const [topic, setTopic] = useState<string>('');
   const [cardCount, setCardCount] = useState<number>(8);
@@ -57,6 +68,33 @@ export const Generator: React.FC<GeneratorProps> = ({ onDeckCreated, hasGeminiKe
   const [deckDescription, setDeckDescription] = useState<string>('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Automatically analyze document for semantic chunks
+  useEffect(() => {
+    const trimmed = inputText.trim();
+    if (!trimmed) {
+      setChunkingResult(null);
+      setSelectedChunkIds(new Set());
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const result = await AiService.chunkDocument(trimmed);
+        setChunkingResult(result);
+        if (result.isLargeDocument) {
+          // By default, select all sections
+          setSelectedChunkIds(new Set(result.chunks.map((c) => c.id)));
+        } else {
+          setSelectedChunkIds(new Set());
+        }
+      } catch (err) {
+        console.warn('Document chunking analysis error:', err);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [inputText]);
 
   // Handle PDF file upload
   const handlePdfUpload = async (file: File) => {
@@ -140,6 +178,51 @@ export const Generator: React.FC<GeneratorProps> = ({ onDeckCreated, hasGeminiKe
     }
   };
 
+  // Load a built-in valid sample PDF to verify parsing
+  const handleLoadSamplePdf = () => {
+    const samplePdfContent = `%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<</Font<</F1 4 0 R>>>>/Contents 5 0 R>>endobj
+4 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+5 0 obj<</Length 420>>stream
+BT
+/F1 14 Tf
+50 720 Td
+(CELLULAR BIOLOGY & METABOLISM - LECTURE NOTES) Tj
+0 -30 Td
+/F1 11 Tf
+(1. The Mitochondrion is often called the powerhouse of the cell.) Tj
+0 -20 Td
+(Its primary role is adenosine triphosphate ATP synthesis through oxidative phosphorylation.) Tj
+0 -20 Td
+(2. Cristae are folded inner membrane structures that maximize surface area for ATP synthase.) Tj
+0 -20 Td
+(3. The Krebs Cycle occurs inside the mitochondrial matrix producing NADH and FADH2.) Tj
+0 -20 Td
+(4. Glycolysis takes place in the cytoplasm and breaks down glucose into two pyruvate molecules.) Tj
+0 -20 Td
+(5. Photosynthesis in chloroplasts converts sunlight into chemical energy stored in glucose.) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000223 00000 n 
+0000000302 00000 n 
+trailer<</Size 6/Root 1 0 R>>
+startxref
+775
+%%EOF`;
+    const blob = new Blob([samplePdfContent], { type: 'application/pdf' });
+    const sampleFile = new File([blob], 'Cellular_Biology_Notes.pdf', { type: 'application/pdf' });
+    handlePdfUpload(sampleFile);
+  };
+
   // Trigger flashcard generation
   const handleGenerate = async () => {
     const trimmed = inputText.trim();
@@ -153,14 +236,30 @@ export const Generator: React.FC<GeneratorProps> = ({ onDeckCreated, hasGeminiKe
       return;
     }
 
+    const isChunkedMode = isChunkingActive && chunkingResult?.isLargeDocument && selectedChunkIds.size > 0;
+    const activeChunks = isChunkedMode
+      ? chunkingResult!.chunks.filter((c) => selectedChunkIds.has(c.id))
+      : undefined;
+
     setErrorMessage(null);
     setIsGenerating(true);
-    setGenerationStep('Analyzing notes content and extracting terminology...');
+
+    if (isChunkedMode && activeChunks && activeChunks.length > 1) {
+      setGenerationStep(
+        `Synthesizing balanced flashcards across ${activeChunks.length} sections...`
+      );
+    } else {
+      setGenerationStep('Analyzing notes content and extracting terminology...');
+    }
 
     try {
       setTimeout(() => {
-        setGenerationStep('Synthesizing high-yield questions and concise explanations...');
-      }, 900);
+        if (isChunkedMode && activeChunks && activeChunks.length > 1) {
+          setGenerationStep('Balancing section quotas and deduplicating cards...');
+        } else {
+          setGenerationStep('Synthesizing high-yield questions and concise explanations...');
+        }
+      }, 1000);
 
       const result = await AiService.generateFlashcards({
         text: trimmed,
@@ -169,6 +268,7 @@ export const Generator: React.FC<GeneratorProps> = ({ onDeckCreated, hasGeminiKe
         difficulty,
         cardType,
         language,
+        chunks: activeChunks,
       });
 
       setGeneratedResult(result);
@@ -178,13 +278,18 @@ export const Generator: React.FC<GeneratorProps> = ({ onDeckCreated, hasGeminiKe
         question: c.question,
         answer: c.answer,
         subject: c.subject || topic || 'General',
+        section: c.section,
         difficulty: c.difficulty || difficulty,
         explanation: c.explanation || '',
       }));
       setDraftCards(mapped);
 
+      const sectionInfo = isChunkedMode && activeChunks
+        ? ` covering ${activeChunks.length} sections (${difficulty.toLowerCase()})`
+        : ` covering ${difficulty.toLowerCase()} level concepts`;
+
       setDeckDescription(
-        `Generated from "${documentName || topic || 'Study Notes'}" covering ${difficulty.toLowerCase()} level concepts.`
+        `Generated from "${documentName || topic || 'Study Notes'}"${sectionInfo}.`
       );
     } catch (err: any) {
       setErrorMessage(err.message || 'Generation failed. Please try again.');
@@ -373,7 +478,34 @@ export const Generator: React.FC<GeneratorProps> = ({ onDeckCreated, hasGeminiKe
                 rows={9}
                 className="w-full p-4 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-sans leading-relaxed resize-y"
               />
-              <div className="flex justify-end">
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInputText(
+                      `# Chapter 1: Foundations of Cellular Biology
+Cells are the fundamental structural and functional units of all living organisms. Eukaryotic cells contain membrane-bound organelles including the nucleus, endoplasmic reticulum, and mitochondria. The cell membrane consists of a phospholipid bilayer with embedded transport proteins that regulate selective permeability.
+
+# Chapter 2: Cellular Metabolism and ATP Synthesis
+Cellular respiration is the catabolic pathway by which cells break down glucose to generate ATP. Glycolysis occurs in the cytoplasm yielding 2 pyruvate, 2 net ATP, and 2 NADH. The citric acid cycle (Krebs cycle) operates in the mitochondrial matrix, oxidizing acetyl-CoA and reducing NAD+ and FAD into electron carriers. Oxidative phosphorylation across the inner mitochondrial membrane drives ATP synthase.
+
+# Chapter 3: Molecular Genetics and DNA Replication
+Deoxyribonucleic acid (DNA) stores genetic information in a double helix of antiparallel strands connected by hydrogen bonds between complementary nitrogenous bases (adenine to thymine, guanine to cytosine). DNA replication is semiconservative: helicase unwinds the double helix, and DNA polymerase synthesizes leading and lagging strands using RNA primers.
+
+# Chapter 4: Protein Synthesis: Transcription & Translation
+The central dogma of molecular biology describes information transfer from DNA to RNA to protein. Transcription in the nucleus produces messenger RNA (mRNA) catalyzed by RNA polymerase. Translation occurs on ribosomes in the cytoplasm where transfer RNA (tRNA) anticodons read mRNA codons to assemble amino acid chains.
+
+# Chapter 5: Photosynthesis and Energy Capture
+Autotrophs convert radiant sunlight into chemical bonds via photosynthesis inside chloroplasts. Light-dependent reactions split water molecules, generating oxygen, ATP, and NADPH. The light-independent Calvin cycle uses the enzyme RuBisCO to fix carbon dioxide into sugars.`
+                    );
+                    setDocumentName('General Biology Comprehensive Syllabus (5 Chapters)');
+                    setTopic('Comprehensive Cellular Biology');
+                  }}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
+                >
+                  Insert large multi-chapter syllabus (5 sections)
+                </button>
+                <span className="text-slate-300">·</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -388,9 +520,9 @@ Cellular respiration is the reciprocal catabolic pathway where glucose is broken
                     setDocumentName('Plant Biology: Photosynthesis & Respiration');
                     setTopic('Photosynthesis');
                   }}
-                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
+                  className="text-xs text-slate-500 hover:text-slate-800 font-medium cursor-pointer"
                 >
-                  Insert sample biology notes
+                  Insert short notes
                 </button>
               </div>
             </div>
@@ -400,9 +532,10 @@ Cellular respiration is the reciprocal catabolic pathway where glucose is broken
           {activeTab === 'pdf' && (
             <div className="space-y-4">
               {!uploadedFile ? (
-                <div
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleFileDrop}
+                <>
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleFileDrop}
                   className="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl p-8 text-center bg-slate-50/50 transition-colors cursor-pointer"
                   onClick={() => fileInputRef.current?.click()}
                 >
@@ -422,9 +555,19 @@ Cellular respiration is the reciprocal catabolic pathway where glucose is broken
                     Click to select PDF or drag & drop here
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
-                    Upload lecture slides, textbook excerpts, or assignments (up to 20MB)
+                    Upload lecture slides, textbook excerpts, or assignments (up to 25MB)
                   </p>
                 </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleLoadSamplePdf}
+                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
+                  >
+                    Try sample biology lecture PDF
+                  </button>
+                </div>
+                </>
               ) : (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
@@ -561,6 +704,139 @@ Cellular respiration is the reciprocal catabolic pathway where glucose is broken
                       rows={7}
                       className="w-full p-3 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono leading-relaxed resize-y"
                     />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Large Document Chunking Panel */}
+          {chunkingResult && chunkingResult.isLargeDocument && (
+            <div className="rounded-xl border border-indigo-200/90 bg-gradient-to-br from-indigo-50/60 via-white to-slate-50 p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg shrink-0">
+                    <Layers className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-slate-900">
+                        Large Document Chunking Active
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-100 text-indigo-700">
+                        {chunkingResult.totalChunks} Semantic Chunks
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Segmented with sliding window context to prevent truncation and guarantee balanced coverage across all chapters.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedChunkIds.size === chunkingResult.chunks.length) {
+                        setSelectedChunkIds(new Set());
+                      } else {
+                        setSelectedChunkIds(new Set(chunkingResult.chunks.map((c) => c.id)));
+                      }
+                    }}
+                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-2.5 py-1 rounded bg-white border border-slate-200 shadow-2xs cursor-pointer"
+                  >
+                    {selectedChunkIds.size === chunkingResult.chunks.length ? 'Deselect All' : 'Select All Chunks'}
+                  </button>
+                  <label className="flex items-center gap-1.5 text-xs text-slate-700 font-medium cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isChunkingActive}
+                      onChange={(e) => setIsChunkingActive(e.target.checked)}
+                      className="rounded accent-indigo-600"
+                    />
+                    <span>Multi-chunk mode</span>
+                  </label>
+                </div>
+              </div>
+
+              {isChunkingActive && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>
+                      Select sections to include ({selectedChunkIds.size} of {chunkingResult.chunks.length} selected):
+                    </span>
+                    <span className="font-mono text-[11px]">
+                      {chunkingResult.totalWords} words across {chunkingResult.chunks.length} sections
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    {chunkingResult.chunks.map((chunk, idx) => {
+                      const isSelected = selectedChunkIds.has(chunk.id);
+                      const isPreview = previewChunkId === chunk.id;
+                      const estimatedCards = Math.max(
+                        1,
+                        Math.round((chunk.wordCount / (chunkingResult.totalWords || 1)) * cardCount)
+                      );
+
+                      return (
+                        <div
+                          key={chunk.id}
+                          className={`rounded-lg border p-3 transition-colors ${
+                            isSelected
+                              ? 'bg-white border-indigo-300 shadow-2xs'
+                              : 'bg-slate-50/70 border-slate-200 opacity-60'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <label className="flex items-start gap-2.5 cursor-pointer flex-1">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  setSelectedChunkIds((prev) => {
+                                    const next = new Set(prev);
+                                    if (e.target.checked) next.add(chunk.id);
+                                    else next.delete(chunk.id);
+                                    return next;
+                                  });
+                                }}
+                                className="mt-0.5 rounded accent-indigo-600 shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <div className="text-xs font-semibold text-slate-900 truncate">
+                                  {idx + 1}. {chunk.title}
+                                </div>
+                                <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
+                                  <span>{chunk.wordCount} words</span>
+                                  <span aria-hidden="true">·</span>
+                                  <span className="text-indigo-600 font-medium">~{estimatedCards} cards</span>
+                                  <span aria-hidden="true">·</span>
+                                  <span>~{chunk.estimatedReadingTimeMinutes} min read</span>
+                                </div>
+                              </div>
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => setPreviewChunkId(isPreview ? null : chunk.id)}
+                              className="text-[11px] text-slate-400 hover:text-indigo-600 p-1 rounded hover:bg-slate-100 transition-colors"
+                              title={isPreview ? 'Hide chunk text' : 'Inspect chunk text'}
+                            >
+                              {isPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+
+                          {isPreview && (
+                            <div className="mt-2.5 pt-2 border-t border-slate-100">
+                              <pre className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded max-h-36 overflow-y-auto whitespace-pre-wrap font-sans leading-relaxed">
+                                {chunk.content}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -732,21 +1008,79 @@ Cellular respiration is the reciprocal catabolic pathway where glucose is broken
             </div>
           </div>
 
+          {/* Section Filter if cards have sections */}
+          {(() => {
+            const uniqueSections = Array.from(
+              new Set(draftCards.map((c) => c.section).filter(Boolean) as string[])
+            );
+            if (uniqueSections.length <= 1) return null;
+
+            return (
+              <div className="flex flex-wrap items-center gap-2 p-3 bg-white rounded-xl border border-slate-200 text-xs">
+                <div className="flex items-center gap-1.5 font-semibold text-slate-800 mr-1">
+                  <Filter className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Section Filter:</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedSectionFilter('all')}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                    selectedSectionFilter === 'all'
+                      ? 'bg-indigo-600 text-white shadow-2xs'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  All Sections ({draftCards.length})
+                </button>
+                {uniqueSections.map((sec) => {
+                  const count = draftCards.filter((c) => c.section === sec).length;
+                  return (
+                    <button
+                      key={sec}
+                      type="button"
+                      onClick={() => setSelectedSectionFilter(sec)}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                        selectedSectionFilter === sec
+                          ? 'bg-indigo-600 text-white shadow-2xs'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {sec} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
           {/* Cards List Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {draftCards.map((card, index) => (
+            {draftCards
+              .map((card, originalIndex) => ({ card, originalIndex }))
+              .filter(({ card }) => selectedSectionFilter === 'all' || card.section === selectedSectionFilter)
+              .map(({ card, originalIndex }) => (
               <div
                 key={card.id}
                 className="bg-white rounded-xl p-5 border border-slate-200 hover:border-slate-300 transition-colors shadow-xs space-y-4"
               >
                 <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span className="font-medium font-mono text-slate-700">
-                    Card #{index + 1}
-                  </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-medium font-mono text-slate-700 shrink-0">
+                      Card #{originalIndex + 1}
+                    </span>
+                    {card.section && (
+                      <span
+                        className="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 border border-indigo-200/70 text-indigo-700 truncate max-w-[200px]"
+                        title={card.section}
+                      >
+                        {card.section}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
                     <span className="text-indigo-600 font-medium">{card.difficulty}</span>
                     <button
-                      onClick={() => handleDeleteDraftCard(index)}
+                      onClick={() => handleDeleteDraftCard(originalIndex)}
                       className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
                       title="Delete card"
                     >
@@ -762,7 +1096,7 @@ Cellular respiration is the reciprocal catabolic pathway where glucose is broken
                     </label>
                     <textarea
                       value={card.question}
-                      onChange={(e) => handleCardChange(index, 'question', e.target.value)}
+                      onChange={(e) => handleCardChange(originalIndex, 'question', e.target.value)}
                       rows={2}
                       className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium text-slate-900 resize-y"
                     />
@@ -774,7 +1108,7 @@ Cellular respiration is the reciprocal catabolic pathway where glucose is broken
                     </label>
                     <textarea
                       value={card.answer}
-                      onChange={(e) => handleCardChange(index, 'answer', e.target.value)}
+                      onChange={(e) => handleCardChange(originalIndex, 'answer', e.target.value)}
                       rows={3}
                       className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-700 leading-relaxed resize-y"
                     />

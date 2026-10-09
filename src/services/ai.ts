@@ -1,4 +1,5 @@
-import { DifficultyLevel, CardTypeOption, Flashcard, QuizQuestion } from '../types';
+import { DifficultyLevel, CardTypeOption, Flashcard, QuizQuestion, DocumentChunk, ChunkingOptions, ChunkingResult } from '../types';
+import { chunkDocument as localChunkDocument, distributeCardCounts, deduplicateAndRankCards } from '../utils/chunking';
 
 export interface GenerationParams {
   text: string;
@@ -7,12 +8,14 @@ export interface GenerationParams {
   difficulty: DifficultyLevel;
   cardType: CardTypeOption;
   language: string;
+  chunks?: DocumentChunk[];
 }
 
 export interface GenerationResult {
   cards: Omit<Flashcard, 'id'>[];
   source: 'gemini' | 'local-extractive';
   modelUsed?: string;
+  isChunked?: boolean;
 }
 
 export const AiService = {
@@ -26,14 +29,31 @@ export const AiService = {
     }
   },
 
+  async chunkDocument(text: string, options?: ChunkingOptions): Promise<ChunkingResult> {
+    try {
+      const res = await fetch('/api/chunk-document', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, ...options }),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.warn('Backend chunking request fell back to client-side engine:', e);
+    }
+    return localChunkDocument(text, options);
+  },
+
   async extractPdf(file: File): Promise<{ text: string; pageCount: number; wordCount: number; title: string }> {
     return new Promise((resolve, reject) => {
-      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-        return reject(new Error('Selected file is not a PDF document.'));
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      if (!isPdf) {
+        return reject(new Error('Selected file is not a valid PDF document.'));
       }
 
-      if (file.size > 20 * 1024 * 1024) {
-        return reject(new Error('PDF file size exceeds 20MB limit.'));
+      if (file.size > 25 * 1024 * 1024) {
+        return reject(new Error('PDF file size exceeds 25MB limit.'));
       }
 
       const reader = new FileReader();
@@ -46,9 +66,15 @@ export const AiService = {
             body: JSON.stringify({ base64Data, filename: file.name }),
           });
 
-          const data = await res.json();
+          let data: any = null;
+          try {
+            data = await res.json();
+          } catch {
+            throw new Error(`Server returned HTTP ${res.status}: ${res.statusText || 'Unable to parse server response'}`);
+          }
+
           if (!res.ok) {
-            throw new Error(data.error || 'Failed to extract text from PDF.');
+            throw new Error(data?.error || `Failed to extract text from PDF (status ${res.status}).`);
           }
 
           resolve({
@@ -107,11 +133,13 @@ export const AiService = {
               question: c.question,
               answer: c.answer,
               subject: c.subject || params.topic,
+              section: c.section,
               difficulty: (c.difficulty as DifficultyLevel) || params.difficulty,
               explanation: c.explanation || '',
             })),
             source: 'gemini',
             modelUsed: data.modelUsed || 'gemini-3.8-flash',
+            isChunked: data.isChunked,
           };
         }
       }
@@ -124,10 +152,11 @@ export const AiService = {
     }
 
     // Local extractive fallback (guarantees functionality without API key or when offline)
-    const localCards = this.extractLocalFlashcards(params.text, params.topic, params.count, params.difficulty);
+    const localCards = this.extractLocalFlashcards(params.text, params.topic, params.count, params.difficulty, params.chunks);
     return {
       cards: localCards,
       source: 'local-extractive',
+      isChunked: Boolean(params.chunks && params.chunks.length > 1),
     };
   },
 
@@ -135,7 +164,35 @@ export const AiService = {
     rawText: string,
     topic: string,
     targetCount: number,
-    difficulty: DifficultyLevel
+    difficulty: DifficultyLevel,
+    chunks?: DocumentChunk[]
+  ): Omit<Flashcard, 'id'>[] {
+    // If multiple document chunks exist, allocate card counts across all sections proportionally
+    if (chunks && chunks.length > 1) {
+      const distributed = distributeCardCounts(chunks, targetCount);
+      const allExtracted: Omit<Flashcard, 'id'>[] = [];
+
+      for (const ch of distributed) {
+        const chunkQuota = ch.allocatedCardCount || 1;
+        const chunkCards = this.extractFromSingleText(ch.content, topic, chunkQuota, difficulty, ch.title);
+        allExtracted.push(...chunkCards);
+      }
+
+      const deduplicated = deduplicateAndRankCards(allExtracted);
+      if (deduplicated.length > 0) {
+        return deduplicated;
+      }
+    }
+
+    return this.extractFromSingleText(rawText, topic, targetCount, difficulty);
+  },
+
+  extractFromSingleText(
+    rawText: string,
+    topic: string,
+    targetCount: number,
+    difficulty: DifficultyLevel,
+    sectionTitle?: string
   ): Omit<Flashcard, 'id'>[] {
     const clean = rawText.replace(/\r\n/g, '\n').replace(/\t/g, ' ');
     const paragraphs = clean.split(/\n\s*\n/).map((p) => p.trim()).filter((p) => p.length > 30);
@@ -173,6 +230,7 @@ export const AiService = {
                 question,
                 answer: definition.endsWith('.') ? definition : `${definition}.`,
                 subject: topic || 'Core Notes',
+                section: sectionTitle,
                 difficulty,
                 explanation: `Extracted directly from study notes: "${sentence.slice(0, 100)}..."`,
               });
@@ -205,6 +263,7 @@ export const AiService = {
                 question,
                 answer: bodySentence || leadSentence,
                 subject: topic || 'Notes',
+                section: sectionTitle,
                 difficulty,
                 explanation: `Derived from notes section covering "${leadSentence.slice(0, 50)}..."`,
               });
@@ -227,6 +286,7 @@ export const AiService = {
               question,
               answer: sentence,
               subject: topic || 'Key Concept',
+              section: sectionTitle,
               difficulty,
               explanation: 'Direct excerpt from study material.',
             });

@@ -143,116 +143,177 @@ export const StudyTrendsChart: React.FC<StudyTrendsChartProps> = ({
         </div>
       </div>
 
-      {/* Main Recharts Area */}
-      <div className="h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          {activeMetric === 'cards' ? (
-            <AreaChart
-              data={dailyTrends}
-              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="colorMastered" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
-                </linearGradient>
-                <linearGradient id="colorStudied" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={{ stroke: '#e2e8f0' }}
-                tick={{ fill: '#64748b', fontSize: 11 }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: '#94a3b8', fontSize: 11 }}
-                allowDecimals={false}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend
-                verticalAlign="top"
-                align="right"
-                iconType="circle"
-                iconSize={8}
-                wrapperStyle={{ paddingBottom: 12, fontSize: 11, color: '#64748b' }}
-              />
-              <Area
-                type="monotone"
-                dataKey="cardsStudied"
-                name="Cards Studied"
-                stroke="#6366f1"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorStudied)"
-              />
-              <Area
-                type="monotone"
-                dataKey="cardsMastered"
-                name="Cards Mastered"
-                stroke="#10b981"
-                strokeWidth={2.5}
-                fillOpacity={1}
-                fill="url(#colorMastered)"
-              />
-            </AreaChart>
-          ) : (
-            <BarChart
-              data={dailyTrends}
-              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="barMinutes" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6366f1" />
-                  <stop offset="100%" stopColor="#4f46e5" />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={{ stroke: '#e2e8f0' }}
-                tick={{ fill: '#64748b', fontSize: 11 }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: '#94a3b8', fontSize: 11 }}
-                unit="m"
-                allowDecimals={false}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend
-                verticalAlign="top"
-                align="right"
-                iconType="circle"
-                iconSize={8}
-                wrapperStyle={{ paddingBottom: 12, fontSize: 11, color: '#64748b' }}
-              />
-              <Bar
-                dataKey="studyMinutes"
-                name="Study Time (Minutes)"
-                fill="url(#barMinutes)"
-                radius={[6, 6, 0, 0]}
-                maxBarSize={38}
-              />
-            </BarChart>
-          )}
-        </ResponsiveContainer>
-      </div>
+      {/* Main Recharts Area or Pristine Initial State */}
+      {totalWeeklyCards === 0 && totalStudyMinutes === 0 ? (
+        <div className="h-64 w-full flex flex-col items-center justify-center text-center p-6 bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-2.5">
+            <TrendingUp className="w-5 h-5" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-800">
+            No study records yet today
+          </h3>
+          <p className="text-xs text-slate-500 max-w-sm mt-1 leading-relaxed">
+            You started your revision journey today! Complete a flashcard review or practice quiz to record your actual retention curve, cards mastered, and focused study time without dummy data.
+          </p>
+        </div>
+      ) : (
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            {activeMetric === 'cards' ? (
+              dailyTrends.length === 1 ? (
+                <BarChart
+                  data={dailyTrends}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={{ stroke: '#e2e8f0' }}
+                    tick={{ fill: '#64748b', fontSize: 11 }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: '#94a3b8', fontSize: 11 }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    verticalAlign="top"
+                    align="right"
+                    iconType="circle"
+                    iconSize={8}
+                    wrapperStyle={{ paddingBottom: 12, fontSize: 11, color: '#64748b' }}
+                  />
+                  <Bar
+                    dataKey="cardsStudied"
+                    name="Cards Studied"
+                    fill="#6366f1"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={48}
+                  />
+                  <Bar
+                    dataKey="cardsMastered"
+                    name="Cards Mastered"
+                    fill="#10b981"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={48}
+                  />
+                </BarChart>
+              ) : (
+                <AreaChart
+                  data={dailyTrends}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorMastered" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="colorStudied" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={{ stroke: '#e2e8f0' }}
+                    tick={{ fill: '#64748b', fontSize: 11 }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: '#94a3b8', fontSize: 11 }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    verticalAlign="top"
+                    align="right"
+                    iconType="circle"
+                    iconSize={8}
+                    wrapperStyle={{ paddingBottom: 12, fontSize: 11, color: '#64748b' }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="cardsStudied"
+                    name="Cards Studied"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorStudied)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="cardsMastered"
+                    name="Cards Mastered"
+                    stroke="#10b981"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#colorMastered)"
+                  />
+                </AreaChart>
+              )
+            ) : (
+              <BarChart
+                data={dailyTrends}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="barMinutes" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6366f1" />
+                    <stop offset="100%" stopColor="#4f46e5" />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={{ stroke: '#e2e8f0' }}
+                  tick={{ fill: '#64748b', fontSize: 11 }}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: '#94a3b8', fontSize: 11 }}
+                  unit="m"
+                  allowDecimals={false}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend
+                  verticalAlign="top"
+                  align="right"
+                  iconType="circle"
+                  iconSize={8}
+                  wrapperStyle={{ paddingBottom: 12, fontSize: 11, color: '#64748b' }}
+                />
+                <Bar
+                  dataKey="studyMinutes"
+                  name="Study Time (Minutes)"
+                  fill="url(#barMinutes)"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={48}
+                />
+              </BarChart>
+            )}
+          </ResponsiveContainer>
+        </div>
+      )}
 
       <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
         <span className="flex items-center gap-1.5">
           <Calendar className="w-3.5 h-3.5 text-slate-400" />
-          <span>Past 7 days revision cycle</span>
+          <span>
+            {dailyTrends.length === 1
+              ? 'Tracking started today'
+              : `Tracked study history (${dailyTrends.length} days)`}
+          </span>
         </span>
         <span className="text-slate-400">
-          Data synchronizes automatically after each flashcard and quiz session
+          Records update in real time after each flashcard and quiz session
         </span>
       </div>
     </div>

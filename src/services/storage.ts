@@ -1,7 +1,7 @@
 import { Deck, Flashcard, StudyStats, ActivityEntry, DailyTrendPoint } from '../types';
 
-const DECKS_STORAGE_KEY = 'flashmind_decks_v1';
-const STATS_STORAGE_KEY = 'flashmind_stats_v1';
+const DECKS_STORAGE_KEY = 'flashmind_decks_v4';
+const STATS_STORAGE_KEY = 'flashmind_stats_v4';
 
 export const SEED_DECKS: Deck[] = [
   {
@@ -14,8 +14,8 @@ export const SEED_DECKS: Deck[] = [
     tags: ['Biology', 'Cells', 'Genetics', 'Exams'],
     sourceDocumentName: 'Campbell_Biology_Ch6_Notes.pdf',
     isGeneratedByAI: true,
-    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     cards: [
       {
         id: 'card-bio-1',
@@ -24,9 +24,8 @@ export const SEED_DECKS: Deck[] = [
         subject: 'Cellular Biology',
         difficulty: 'Easy',
         explanation: 'Often called the powerhouse of the cell; produces adenosine triphosphate (ATP) via the citric acid cycle and oxidative phosphorylation.',
-        mastered: true,
-        reviewCount: 3,
-        lastReviewed: new Date(Date.now() - 86400000).toISOString(),
+        mastered: false,
+        reviewCount: 0,
       },
       {
         id: 'card-bio-2',
@@ -36,9 +35,8 @@ export const SEED_DECKS: Deck[] = [
         difficulty: 'Medium',
         explanation: 'Rough ER has ribosomes attached; smooth ER synthesizes lipids and metabolizes carbohydrates.',
         mastered: false,
-        needsReview: true,
-        reviewCount: 2,
-        lastReviewed: new Date(Date.now() - 2 * 86400000).toISOString(),
+        needsReview: false,
+        reviewCount: 0,
       },
       {
         id: 'card-bio-3',
@@ -47,9 +45,8 @@ export const SEED_DECKS: Deck[] = [
         subject: 'Genetics',
         difficulty: 'Medium',
         explanation: 'Helicase separates the two complementary strands at the origin of replication.',
-        mastered: true,
-        reviewCount: 4,
-        lastReviewed: new Date(Date.now() - 86400000).toISOString(),
+        mastered: false,
+        reviewCount: 0,
       },
       {
         id: 'card-bio-4',
@@ -59,7 +56,7 @@ export const SEED_DECKS: Deck[] = [
         difficulty: 'Hard',
         explanation: 'DNA polymerase can only synthesize in the 5’ to 3’ direction, forcing discontinuous lagging strand synthesis.',
         mastered: false,
-        reviewCount: 1,
+        reviewCount: 0,
       },
       {
         id: 'card-bio-5',
@@ -78,8 +75,8 @@ export const SEED_DECKS: Deck[] = [
         subject: 'Cellular Biology',
         difficulty: 'Easy',
         explanation: 'Composed of flattened membranous sacs called cisternae with cis (entry) and trans (exit) faces.',
-        mastered: true,
-        reviewCount: 2,
+        mastered: false,
+        reviewCount: 0,
       },
     ],
   },
@@ -92,8 +89,8 @@ export const SEED_DECKS: Deck[] = [
     tags: ['Algorithms', 'Data Structures', 'Big-O', 'Coding'],
     sourceDocumentName: 'Algorithms_Lecture_Notes_Week4.txt',
     isGeneratedByAI: true,
-    createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     cards: [
       {
         id: 'card-cs-1',
@@ -103,7 +100,7 @@ export const SEED_DECKS: Deck[] = [
         difficulty: 'Medium',
         explanation: 'Average case time complexity remains O(n log n).',
         mastered: false,
-        reviewCount: 1,
+        reviewCount: 0,
       },
       {
         id: 'card-cs-2',
@@ -112,9 +109,8 @@ export const SEED_DECKS: Deck[] = [
         subject: 'Search Algorithms',
         difficulty: 'Easy',
         explanation: 'Allows discarding half the search interval in O(1) time per step, achieving O(log n) total runtime.',
-        mastered: true,
-        reviewCount: 5,
-        lastReviewed: new Date().toISOString(),
+        mastered: false,
+        reviewCount: 0,
       },
       {
         id: 'card-cs-3',
@@ -124,8 +120,8 @@ export const SEED_DECKS: Deck[] = [
         difficulty: 'Hard',
         explanation: 'Memoization (top-down) or tabulation (bottom-up) stores intermediate subproblem results.',
         mastered: false,
-        needsReview: true,
-        reviewCount: 2,
+        needsReview: false,
+        reviewCount: 0,
       },
       {
         id: 'card-cs-4',
@@ -134,8 +130,8 @@ export const SEED_DECKS: Deck[] = [
         subject: 'Data Structures',
         difficulty: 'Medium',
         explanation: 'Height self-balancing keeps the tree height strictly bounded by O(log n).',
-        mastered: true,
-        reviewCount: 3,
+        mastered: false,
+        reviewCount: 0,
       },
     ],
   },
@@ -148,8 +144,8 @@ export const SEED_DECKS: Deck[] = [
     tags: ['Psychology', 'Memory', 'Neuroscience'],
     sourceDocumentName: 'Intro_Psych_Ch7_Notes.txt',
     isGeneratedByAI: true,
-    createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     cards: [
       {
         id: 'card-psy-1',
@@ -158,8 +154,8 @@ export const SEED_DECKS: Deck[] = [
         subject: 'Cognitive Models',
         difficulty: 'Medium',
         explanation: 'Distinguishes active manipulation of information from passive short-term storage.',
-        mastered: true,
-        reviewCount: 2,
+        mastered: false,
+        reviewCount: 0,
       },
       {
         id: 'card-psy-2',
@@ -169,8 +165,8 @@ export const SEED_DECKS: Deck[] = [
         difficulty: 'Hard',
         explanation: 'Pro = forward in time disruption; Retro = backward in time disruption.',
         mastered: false,
-        needsReview: true,
-        reviewCount: 1,
+        needsReview: false,
+        reviewCount: 0,
       },
       {
         id: 'card-psy-3',
@@ -179,66 +175,166 @@ export const SEED_DECKS: Deck[] = [
         subject: 'Learning Science',
         difficulty: 'Easy',
         explanation: 'Flashcards and low-stakes quizzing are direct applications of the testing effect.',
-        mastered: true,
-        reviewCount: 4,
+        mastered: false,
+        reviewCount: 0,
       },
     ],
   },
 ];
 
-function generateDefaultTrends(): DailyTrendPoint[] {
-  const points: DailyTrendPoint[] = [];
-  const baseMastered = [3, 4, 2, 5, 3, 6, 4];
-  const baseStudied = [8, 10, 6, 12, 9, 14, 11];
-  const baseMinutes = [12, 16, 9, 18, 14, 22, 17];
+export function getDayKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 86400000);
-    const dateLabel = d.toLocaleDateString(undefined, { weekday: 'short', month: 'numeric', day: 'numeric' });
-    const idx = 6 - i;
-    points.push({
-      date: dateLabel,
-      cardsMastered: baseMastered[idx],
-      cardsStudied: baseStudied[idx],
-      studyMinutes: baseMinutes[idx],
+export function formatTrendDate(date: Date): string {
+  const now = new Date();
+  const isToday = getDayKey(date) === getDayKey(now);
+  const monthName = date.toLocaleDateString(undefined, { month: 'short' });
+  const dayNum = date.getDate();
+
+  if (isToday) {
+    return `Today (${monthName} ${dayNum})`;
+  }
+  return `${monthName} ${dayNum}`;
+}
+
+export function calculateStreakFromActivities(activities: ActivityEntry[]): number {
+  if (!Array.isArray(activities) || activities.length === 0) return 0;
+
+  const studyDayKeys = new Set<string>();
+  for (const act of activities) {
+    if (act.type === 'study' || act.type === 'quiz') {
+      const d = new Date(act.timestamp);
+      if (!isNaN(d.getTime())) {
+        studyDayKeys.add(getDayKey(d));
+      }
+    }
+  }
+
+  if (studyDayKeys.size === 0) return 0;
+
+  const today = new Date();
+  const todayKey = getDayKey(today);
+  const yesterdayKey = getDayKey(new Date(Date.now() - 86400000));
+
+  let checkDate: Date;
+  if (studyDayKeys.has(todayKey)) {
+    checkDate = today;
+  } else if (studyDayKeys.has(yesterdayKey)) {
+    checkDate = new Date(Date.now() - 86400000);
+  } else {
+    return 0;
+  }
+
+  let streak = 0;
+  while (true) {
+    const key = getDayKey(checkDate);
+    if (studyDayKeys.has(key)) {
+      streak += 1;
+      checkDate = new Date(checkDate.getTime() - 86400000);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+export function generateCleanDailyTrends(
+  existingTrends?: DailyTrendPoint[],
+  startDateStr?: string
+): DailyTrendPoint[] {
+  const today = new Date();
+  const existingMap = new Map<string, DailyTrendPoint>();
+
+  if (Array.isArray(existingTrends)) {
+    existingTrends.forEach((t) => {
+      if (t && (t.dateKey || t.date)) {
+        // Exclude any legacy mock items
+        const isDummy =
+          (t.cardsStudied === 8 || t.cardsStudied === 14) &&
+          (t.cardsMastered === 3 || t.cardsMastered === 6);
+        const hasDummyDate = t.date.includes('3/10');
+        if (!isDummy && !hasDummyDate) {
+          if (t.dateKey) existingMap.set(t.dateKey, t);
+          existingMap.set(t.date, t);
+        }
+      }
     });
   }
+
+  // Calculate day difference from user's start date
+  let start = today;
+  if (startDateStr) {
+    const parsedStart = new Date(startDateStr);
+    if (!isNaN(parsedStart.getTime())) {
+      start = parsedStart;
+    }
+  }
+
+  const startTime = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
+  const todayTime = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  // Days since user started, clamped between 0 and 13 days
+  const dayDiff = Math.max(0, Math.min(13, Math.round((todayTime - startTime) / 86400000)));
+
+  const points: DailyTrendPoint[] = [];
+  for (let i = dayDiff; i >= 0; i--) {
+    const d = new Date(todayTime - i * 86400000);
+    const dateKey = getDayKey(d);
+    const dateLabel = formatTrendDate(d);
+    const existing = existingMap.get(dateKey) || existingMap.get(dateLabel);
+
+    points.push({
+      date: dateLabel,
+      dateKey,
+      cardsMastered: existing?.cardsMastered || 0,
+      cardsStudied: existing?.cardsStudied || 0,
+      studyMinutes: existing?.studyMinutes || 0,
+    });
+  }
+
   return points;
 }
 
-const INITIAL_STATS: StudyStats = {
-  totalCardsStudied: 28,
-  totalCardsMastered: 11,
-  totalStudyMinutes: 52,
-  studyStreakDays: 3,
-  lastStudyDate: new Date().toISOString(),
-  dailyTrends: generateDefaultTrends(),
-  activities: [
-    {
-      id: 'act-1',
-      timestamp: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
-      type: 'study',
-      deckTitle: 'Cellular Biology: Organelles & Energy',
-      cardsCount: 6,
-    },
-    {
-      id: 'act-2',
-      timestamp: new Date(Date.now() - 86400000).toISOString(),
-      type: 'quiz',
-      deckTitle: 'Computer Science: Algorithms & Complexity',
-      cardsCount: 4,
-      score: 100,
-    },
-  ],
+export const INITIAL_STATS: StudyStats = {
+  startDate: new Date().toISOString(),
+  totalCardsStudied: 0,
+  totalCardsMastered: 0,
+  totalStudyMinutes: 0,
+  studyStreakDays: 0,
+  lastStudyDate: '',
+  dailyTrends: generateCleanDailyTrends([], new Date().toISOString()),
+  activities: [],
 };
 
 export const StorageService = {
   getDecks(): Deck[] {
     try {
+      // Clean up legacy deck keys
+      localStorage.removeItem('flashmind_decks_v1');
+      localStorage.removeItem('flashmind_decks_v2');
+      localStorage.removeItem('flashmind_decks_v3');
+
       const data = localStorage.getItem(DECKS_STORAGE_KEY);
       if (!data) {
-        this.saveDecks(SEED_DECKS);
-        return SEED_DECKS;
+        // Deep copy SEED_DECKS with clean mastery states
+        const cleanSeeds: Deck[] = SEED_DECKS.map((d) => ({
+          ...d,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          cards: d.cards.map((c) => ({
+            ...c,
+            mastered: false,
+            needsReview: false,
+            reviewCount: 0,
+            lastReviewed: undefined,
+          })),
+        }));
+        this.saveDecks(cleanSeeds);
+        return cleanSeeds;
       }
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -328,18 +424,54 @@ export const StorageService = {
 
   getStats(): StudyStats {
     try {
+      // Clean up legacy storage keys
+      localStorage.removeItem('flashmind_stats_v1');
+      localStorage.removeItem('flashmind_stats_v2');
+      localStorage.removeItem('flashmind_stats_v3');
+
       const data = localStorage.getItem(STATS_STORAGE_KEY);
       if (!data) {
-        localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(INITIAL_STATS));
+        this.saveStats(INITIAL_STATS);
         return INITIAL_STATS;
       }
       const parsed = JSON.parse(data);
-      if (!parsed.dailyTrends || !Array.isArray(parsed.dailyTrends) || parsed.dailyTrends.length === 0) {
-        parsed.dailyTrends = generateDefaultTrends();
+
+      // Purge any contaminated legacy mock records
+      const hasDummyActs =
+        Array.isArray(parsed.activities) &&
+        parsed.activities.some((a: any) => a.id === 'act-1' || a.id === 'act-2');
+      const hasDummyNumbers =
+        parsed.totalCardsStudied === 28 ||
+        (parsed.studyStreakDays === 3 && parsed.totalStudyMinutes === 52);
+      const hasDummyDailyNumbers =
+        Array.isArray(parsed.dailyTrends) &&
+        parsed.dailyTrends.some(
+          (t: any) =>
+            t.cardsStudied === 8 ||
+            t.cardsStudied === 14 ||
+            (t.date && t.date.includes('3/10'))
+        );
+
+      if (hasDummyActs || hasDummyNumbers || hasDummyDailyNumbers) {
+        console.info('Purging legacy dummy study data and starting with pristine records.');
+        this.saveStats(INITIAL_STATS);
+        return INITIAL_STATS;
       }
-      if (typeof parsed.totalStudyMinutes !== 'number') {
-        parsed.totalStudyMinutes = Math.round(parsed.totalCardsStudied * 1.5) || 52;
+
+      if (!parsed.startDate) {
+        parsed.startDate = new Date().toISOString();
       }
+
+      // Synchronize clean daily trends strictly starting from user's start date
+      parsed.dailyTrends = generateCleanDailyTrends(parsed.dailyTrends, parsed.startDate);
+      if (typeof parsed.totalCardsStudied !== 'number') parsed.totalCardsStudied = 0;
+      if (typeof parsed.totalCardsMastered !== 'number') parsed.totalCardsMastered = 0;
+      if (typeof parsed.totalStudyMinutes !== 'number') parsed.totalStudyMinutes = 0;
+      if (!Array.isArray(parsed.activities)) parsed.activities = [];
+
+      // Calculate streak strictly from actual logged activities
+      parsed.studyStreakDays = calculateStreakFromActivities(parsed.activities);
+
       return parsed;
     } catch {
       return INITIAL_STATS;
@@ -354,60 +486,86 @@ export const StorageService = {
     }
   },
 
+  resetStats(): StudyStats {
+    const clean: StudyStats = {
+      startDate: new Date().toISOString(),
+      totalCardsStudied: 0,
+      totalCardsMastered: 0,
+      totalStudyMinutes: 0,
+      studyStreakDays: 0,
+      lastStudyDate: '',
+      dailyTrends: generateCleanDailyTrends([], new Date().toISOString()),
+      activities: [],
+    };
+    this.saveStats(clean);
+    return clean;
+  },
+
+  resetAllProgress(): { decks: Deck[]; stats: StudyStats } {
+    const stats = this.resetStats();
+    const decks = this.getDecks().map((d) => ({
+      ...d,
+      updatedAt: new Date().toISOString(),
+      cards: d.cards.map((c) => ({
+        ...c,
+        mastered: false,
+        needsReview: false,
+        reviewCount: 0,
+        lastReviewed: undefined,
+      })),
+    }));
+    this.saveDecks(decks);
+    return { decks, stats };
+  },
+
   recordStudySession(cardsStudied: number, masteredDelta: number, deckTitle: string): void {
     const stats = this.getStats();
-    const today = new Date().toDateString();
-    const lastDate = stats.lastStudyDate ? new Date(stats.lastStudyDate).toDateString() : '';
+    const now = new Date();
+    const todayKey = getDayKey(now);
+    const todayLabel = formatTrendDate(now);
+    const sessionMinutes = Math.max(1, Math.round(cardsStudied * 1.5));
 
-    let streak = stats.studyStreakDays;
-    if (lastDate !== today) {
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
-      if (lastDate === yesterday) {
-        streak += 1;
-      } else if (!lastDate) {
-        streak = 1;
-      } else {
-        streak = 1;
-      }
-    }
+    const newActivity: ActivityEntry = {
+      id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      timestamp: now.toISOString(),
+      type: 'study',
+      deckTitle,
+      cardsCount: cardsStudied,
+    };
+    const updatedActivities = [newActivity, ...stats.activities.slice(0, 49)];
 
-    const sessionMinutes = Math.max(2, Math.round(cardsStudied * 1.5));
-    const todayLabel = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'numeric', day: 'numeric' });
-
-    // Update dailyTrends: update today or append
+    // Update dailyTrends: locate existing point for today or append
     const trends = [...stats.dailyTrends];
-    const lastTrend = trends[trends.length - 1];
-    if (lastTrend && lastTrend.date === todayLabel) {
-      lastTrend.cardsStudied += cardsStudied;
-      lastTrend.cardsMastered += Math.max(0, masteredDelta);
-      lastTrend.studyMinutes += sessionMinutes;
+    const existingIdx = trends.findIndex((t) => t.dateKey === todayKey);
+    if (existingIdx >= 0) {
+      trends[existingIdx] = {
+        ...trends[existingIdx],
+        cardsStudied: trends[existingIdx].cardsStudied + cardsStudied,
+        cardsMastered: trends[existingIdx].cardsMastered + Math.max(0, masteredDelta),
+        studyMinutes: trends[existingIdx].studyMinutes + sessionMinutes,
+      };
     } else {
       trends.push({
         date: todayLabel,
+        dateKey: todayKey,
         cardsStudied,
         cardsMastered: Math.max(0, masteredDelta),
         studyMinutes: sessionMinutes,
       });
-      if (trends.length > 7) trends.shift();
+      if (trends.length > 14) trends.shift();
     }
 
+    const streak = calculateStreakFromActivities(updatedActivities);
+
     const updatedStats: StudyStats = {
+      ...stats,
       totalCardsStudied: stats.totalCardsStudied + cardsStudied,
       totalCardsMastered: Math.max(0, stats.totalCardsMastered + masteredDelta),
-      totalStudyMinutes: (stats.totalStudyMinutes || 0) + sessionMinutes,
+      totalStudyMinutes: stats.totalStudyMinutes + sessionMinutes,
       studyStreakDays: streak,
-      lastStudyDate: new Date().toISOString(),
+      lastStudyDate: now.toISOString(),
       dailyTrends: trends,
-      activities: [
-        {
-          id: `act-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          type: 'study',
-          deckTitle,
-          cardsCount: cardsStudied,
-        },
-        ...stats.activities.slice(0, 19),
-      ],
+      activities: updatedActivities,
     };
 
     this.saveStats(updatedStats);
@@ -415,42 +573,55 @@ export const StorageService = {
 
   recordQuizResult(deckTitle: string, totalQuestions: number, scorePercentage: number): void {
     const stats = this.getStats();
-    const sessionMinutes = Math.max(2, Math.round(totalQuestions * 1.2));
-    const todayLabel = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'numeric', day: 'numeric' });
+    const now = new Date();
+    const todayKey = getDayKey(now);
+    const todayLabel = formatTrendDate(now);
+    const sessionMinutes = Math.max(1, Math.round(totalQuestions * 1.2));
+    const masteredCount = Math.round(totalQuestions * (scorePercentage / 100));
+
+    const newActivity: ActivityEntry = {
+      id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      timestamp: now.toISOString(),
+      type: 'quiz',
+      deckTitle,
+      cardsCount: totalQuestions,
+      score: scorePercentage,
+    };
+    const updatedActivities = [newActivity, ...stats.activities.slice(0, 49)];
 
     const trends = [...stats.dailyTrends];
-    const lastTrend = trends[trends.length - 1];
-    if (lastTrend && lastTrend.date === todayLabel) {
-      lastTrend.cardsStudied += totalQuestions;
-      lastTrend.studyMinutes += sessionMinutes;
+    const existingIdx = trends.findIndex((t) => t.dateKey === todayKey);
+    if (existingIdx >= 0) {
+      trends[existingIdx] = {
+        ...trends[existingIdx],
+        cardsStudied: trends[existingIdx].cardsStudied + totalQuestions,
+        cardsMastered: trends[existingIdx].cardsMastered + masteredCount,
+        studyMinutes: trends[existingIdx].studyMinutes + sessionMinutes,
+      };
     } else {
       trends.push({
         date: todayLabel,
+        dateKey: todayKey,
         cardsStudied: totalQuestions,
-        cardsMastered: Math.round(totalQuestions * (scorePercentage / 100)),
+        cardsMastered: masteredCount,
         studyMinutes: sessionMinutes,
       });
-      if (trends.length > 7) trends.shift();
+      if (trends.length > 14) trends.shift();
     }
+
+    const streak = calculateStreakFromActivities(updatedActivities);
 
     const updatedStats: StudyStats = {
       ...stats,
       totalCardsStudied: stats.totalCardsStudied + totalQuestions,
-      totalStudyMinutes: (stats.totalStudyMinutes || 0) + sessionMinutes,
-      lastStudyDate: new Date().toISOString(),
+      totalCardsMastered: stats.totalCardsMastered + masteredCount,
+      totalStudyMinutes: stats.totalStudyMinutes + sessionMinutes,
+      studyStreakDays: streak,
+      lastStudyDate: now.toISOString(),
       dailyTrends: trends,
-      activities: [
-        {
-          id: `act-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          type: 'quiz',
-          deckTitle,
-          cardsCount: totalQuestions,
-          score: scorePercentage,
-        },
-        ...stats.activities.slice(0, 19),
-      ],
+      activities: updatedActivities,
     };
+
     this.saveStats(updatedStats);
   },
 

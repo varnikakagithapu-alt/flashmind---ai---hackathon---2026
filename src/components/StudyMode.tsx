@@ -282,6 +282,14 @@ export const StudyMode: React.FC<StudyModeProps> = ({
                     </span>
                     <span aria-hidden="true">·</span>
                     <span>{currentCard.difficulty || 'Medium'}</span>
+                    {currentCard.section && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span className="text-indigo-600 font-medium truncate max-w-[160px]" title={currentCard.section}>
+                          {currentCard.section}
+                        </span>
+                      </>
+                    )}
                   </div>
                   <button
                     onClick={(e) => {
@@ -316,6 +324,14 @@ export const StudyMode: React.FC<StudyModeProps> = ({
                     </span>
                     <span aria-hidden="true">·</span>
                     <span>{currentCard.subject || deck.subject}</span>
+                    {currentCard.section && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span className="text-indigo-300 truncate max-w-[160px]" title={currentCard.section}>
+                          {currentCard.section}
+                        </span>
+                      </>
+                    )}
                   </div>
                   <button
                     onClick={(e) => {

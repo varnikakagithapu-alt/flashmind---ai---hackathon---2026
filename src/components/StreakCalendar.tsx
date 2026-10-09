@@ -14,29 +14,30 @@ export const StreakCalendar: React.FC<StreakCalendarProps> = ({ stats }) => {
   const lastStudyDateStr = stats.lastStudyDate ? new Date(stats.lastStudyDate).toDateString() : '';
   const practicedToday = lastStudyDateStr === todayStr;
 
-  // Extract dates that had activity from dailyTrends and activities
+  // Extract dates that had real study/quiz activity
   const practicedDatesSet = new Set<string>();
 
-  // Add from activities
-  stats.activities.forEach((act) => {
-    if (act.timestamp) {
-      practicedDatesSet.add(new Date(act.timestamp).toDateString());
+  (stats.activities || []).forEach((act) => {
+    if (act.timestamp && (act.type === 'study' || act.type === 'quiz')) {
+      const d = new Date(act.timestamp);
+      if (!isNaN(d.getTime())) {
+        practicedDatesSet.add(d.toDateString());
+      }
     }
   });
 
-  // Also include the streak days prior to today
-  for (let i = 0; i < stats.studyStreakDays; i++) {
-    const d = new Date(Date.now() - i * 86400000);
-    practicedDatesSet.add(d.toDateString());
-  }
+  // Current calendar week (Sunday through Saturday)
+  const currentWeekStart = new Date(today);
+  currentWeekStart.setDate(today.getDate() - today.getDay());
+  currentWeekStart.setHours(0, 0, 0, 0);
 
-  // Generate current 7-day rolling week window
   const weekDays = Array.from({ length: 7 }).map((_, i) => {
-    const d = new Date(Date.now() - (6 - i) * 86400000);
+    const d = new Date(currentWeekStart);
+    d.setDate(currentWeekStart.getDate() + i);
     const dateStr = d.toDateString();
     const isToday = dateStr === todayStr;
     const isPracticed = practicedDatesSet.has(dateStr);
-    const dayName = d.toLocaleDateString(undefined, { weekday: 'narrow' }); // M, T, W, etc.
+    const dayName = d.toLocaleDateString(undefined, { weekday: 'narrow' }); // S, M, T, W, etc.
     const dayNum = d.getDate();
 
     return {
@@ -91,7 +92,11 @@ export const StreakCalendar: React.FC<StreakCalendarProps> = ({ stats }) => {
               <span className="text-xs font-semibold text-slate-700">Day Streak</span>
             </div>
             <div className="text-[11px] text-slate-400">
-              {practicedToday ? 'Practiced today' : 'Study today to continue'}
+              {practicedToday
+                ? 'Practiced today'
+                : stats.studyStreakDays > 0
+                ? 'Study today to continue streak'
+                : 'Study today to start streak'}
             </div>
           </div>
         </div>
@@ -165,7 +170,7 @@ export const StreakCalendar: React.FC<StreakCalendarProps> = ({ stats }) => {
           <div className="flex items-center justify-between text-xs font-semibold text-slate-700 px-1">
             <span>{monthName}</span>
             <span className="text-[11px] text-slate-400 font-normal">
-              {stats.dailyTrends.length} active sessions
+              {practicedDatesSet.size} {practicedDatesSet.size === 1 ? 'active day' : 'active days'}
             </span>
           </div>
 
